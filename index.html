@@ -116,6 +116,8 @@
   .field label{font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px}
   select,.slipbtn{width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:#0b1424;color:var(--txt);font-size:.95rem;font-family:inherit}
   .slipbtn{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;color:var(--accent);border-style:dashed;cursor:pointer}
+  .slipwrap{position:relative}
+  .slip-overlay{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;cursor:pointer}
   .preview{margin-top:12px;border-radius:12px;overflow:hidden;border:1px solid var(--line);display:none}
   .preview img{width:100%;display:block;max-height:260px;object-fit:contain;background:#000}
   .btn{width:100%;padding:14px;border-radius:12px;border:0;font-size:1rem;font-weight:800;margin-top:16px;cursor:pointer}
@@ -183,7 +185,7 @@
   <div id="months"></div>
 
   <button class="reset" id="resetBtn">ล้างข้อมูลทั้งหมด</button>
-  <div class="save-note">ข้อมูลเช็คจ่ายเก็บในเครื่อง · สลิปอัปขึ้น Google Drive + Sheet เมื่อเชื่อม Cloud</div>
+  <div class="save-note">ข้อมูลเช็คจ่ายเก็บในเครื่อง · สลิปอัปขึ้น Google Drive + Sheet เมื่อเชื่อม Cloud · v6</div>
 </div>
 
 <div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
@@ -367,8 +369,10 @@ function openSheet(m,dId){
       <div class="m-sub">เดือน ${mn.mo} ${mn.yr}</div>
       <div class="field">
         <label>สลิปโอนเงิน</label>
-        <button type="button" class="slipbtn" id="slipBtn">📷 ถ่าย / เลือกรูปสลิป</button>
-        <input id="slipInput" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px">
+        <div class="slipwrap">
+          <button type="button" class="slipbtn" id="slipBtn">📷 ถ่าย / เลือกรูปสลิป</button>
+          <input id="slipInput" type="file" accept="image/*" class="slip-overlay">
+        </div>
         <div class="preview" id="prev"><img id="prevImg" alt=""></div>
       </div>
       <div class="field">
@@ -379,7 +383,6 @@ function openSheet(m,dId){
       <button class="btn ghost" id="noSlip">ทำเครื่องหมายว่าจ่ายแล้ว (ไม่มีสลิป)</button>
       <button class="btn ghost" id="closeS">ปิด</button>`;
     const input=sheet.querySelector("#slipInput");
-    sheet.querySelector("#slipBtn").onclick=()=>input.click();
     input.onchange=async()=>{
       const f=input.files[0];if(!f)return;
       cur.file=f;

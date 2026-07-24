@@ -1,9 +1,12 @@
 // Debt Tracker · Service Worker (network-first)
 // ดึงเวอร์ชันใหม่จากเน็ตเสมอเมื่อออนไลน์ + fallback cache เมื่อออฟไลน์
-const CACHE = 'debt-tracker-v1';
+const CACHE = 'debt-tracker-v6';
 
 self.addEventListener('install', e => self.skipWaiting());
-self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+self.addEventListener('activate', e => e.waitUntil(
+  caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+    .then(() => self.clients.claim())
+));
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;                 // ไม่แตะ POST (อัปสลิป)
