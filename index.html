@@ -185,7 +185,7 @@
   <div id="months"></div>
 
   <button class="reset" id="resetBtn">ล้างข้อมูลทั้งหมด</button>
-  <div class="save-note">ข้อมูลเช็คจ่ายเก็บในเครื่อง · สลิปอัปขึ้น Google Drive + Sheet เมื่อเชื่อม Cloud · v6</div>
+  <div class="save-note">ข้อมูลเช็คจ่ายเก็บในเครื่อง · สลิปอัปขึ้น Google Drive + Sheet เมื่อเชื่อม Cloud · v7</div>
 </div>
 
 <div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
@@ -266,7 +266,7 @@ function buildMonths(){
         <div class="foot"><span>รวมเดือนนี้</span><b>${fmt(PER_MONTH)} บาท</b></div>
       </div></div>`;
     card.querySelector(".m-head").addEventListener("click",()=>{card.classList.toggle("open");syncHeights()});
-    card.querySelectorAll(".item").forEach(it=>{it.addEventListener("click",()=>openSheet(mn.k,it.dataset.d))});
+    card.querySelectorAll(".item").forEach(it=>{it.addEventListener("click",ev=>{ev.stopPropagation();openSheet(mn.k,it.dataset.d)})});
     monthsEl.appendChild(card);
   });
 }
@@ -399,10 +399,12 @@ function openSheet(m,dId){
     };
   }
   sheet.querySelector("#closeS").onclick=closeSheet;
+  sheetOpenedAt=Date.now();
   $("#ov").classList.add("show");
 }
+let sheetOpenedAt=0;
 function closeSheet(){$("#ov").classList.remove("show")}
-$("#ov").addEventListener("click",e=>{if(e.target.id==="ov")closeSheet()});
+$("#ov").addEventListener("click",e=>{if(e.target.id==="ov"&&Date.now()-sheetOpenedAt>450)closeSheet()});
 
 async function confirmPay(){
   const sheet=$("#sheet");const bank=sheet.querySelector("#bankSel").value;
@@ -448,9 +450,9 @@ function compress(file){
   });
 }
 
-$("#gearBtn").onclick=()=>{$("#cfgUrl").value=endpoint();$("#cfgOv").classList.add("show")};
+$("#gearBtn").onclick=()=>{$("#cfgUrl").value=endpoint();sheetOpenedAt=Date.now();$("#cfgOv").classList.add("show")};
 $("#cfgClose").onclick=()=>$("#cfgOv").classList.remove("show");
-$("#cfgOv").addEventListener("click",e=>{if(e.target.id==="cfgOv")e.currentTarget.classList.remove("show")});
+$("#cfgOv").addEventListener("click",e=>{if(e.target.id==="cfgOv"&&Date.now()-sheetOpenedAt>450)e.currentTarget.classList.remove("show")});
 $("#cfgSave").onclick=()=>{
   const u=$("#cfgUrl").value.trim();
   if(u)localStorage.setItem("ekEndpoint",u);else localStorage.removeItem("ekEndpoint");
