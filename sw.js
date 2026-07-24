@@ -1,6 +1,6 @@
 // Debt Tracker · Service Worker (network-first)
 // ดึงเวอร์ชันใหม่จากเน็ตเสมอเมื่อออนไลน์ + fallback cache เมื่อออฟไลน์
-const CACHE = 'debt-tracker-v7';
+const CACHE = 'debt-tracker-v8';
 
 self.addEventListener('install', e => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(

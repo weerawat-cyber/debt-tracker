@@ -59,7 +59,7 @@
   .statcard .k{font-size:.64rem;opacity:.92;font-weight:600}
   .statcard .v{font-size:1.05rem;font-weight:800;margin-top:4px}
   .statcard.remain{background:linear-gradient(135deg,#fbbf24,#f97316)}
-  .statcard.month{background:linear-gradient(135deg,#38bdf8,#2563eb)}
+  .statcard.permo{background:linear-gradient(135deg,#38bdf8,#2563eb)}
   .statcard.done{background:linear-gradient(135deg,#34d399,#059669)}
   .chart-title{font-size:.74rem;color:#64748b;font-weight:700;margin:20px 0 12px}
   .barchart{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;height:118px}
@@ -171,7 +171,7 @@
     </div>
     <div class="statrow">
       <div class="statcard remain"><div class="k">คงเหลือ (บาท)</div><div class="v" id="remainAmt">0</div></div>
-      <div class="statcard month"><div class="k">ต่อเดือน</div><div class="v">9,956</div></div>
+      <div class="statcard permo"><div class="k">ต่อเดือน</div><div class="v">9,956</div></div>
       <div class="statcard done"><div class="k">เดือนครบ</div><div class="v" id="monthsDone">0/8</div></div>
     </div>
     <div class="chart-title">จ่ายครบกี่รายการต่อเดือน (เต็ม = 4)</div>
@@ -185,7 +185,7 @@
   <div id="months"></div>
 
   <button class="reset" id="resetBtn">ล้างข้อมูลทั้งหมด</button>
-  <div class="save-note">ข้อมูลเช็คจ่ายเก็บในเครื่อง · สลิปอัปขึ้น Google Drive + Sheet เมื่อเชื่อม Cloud · v7</div>
+  <div class="save-note">ข้อมูลเช็คจ่ายเก็บในเครื่อง · สลิปอัปขึ้น Google Drive + Sheet เมื่อเชื่อม Cloud · v8</div>
 </div>
 
 <div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
@@ -271,8 +271,9 @@ function buildMonths(){
   });
 }
 function syncHeights(){
-  document.querySelectorAll(".month").forEach(card=>{
+  monthsEl.querySelectorAll(".month").forEach(card=>{
     const body=card.querySelector(".m-body");
+    if(!body)return;
     body.style.maxHeight=card.classList.contains("open")?body.scrollHeight+"px":"0px";
   });
 }
