@@ -37,18 +37,37 @@
   .install b{color:var(--accent)}.install .x{margin-left:auto;color:var(--muted);font-size:1.2rem;padding:0 4px}
   .install button{background:var(--accent2);color:#04212f;border:0;border-radius:8px;padding:7px 12px;font-weight:700;font-size:.8rem}
 
-  .dash{background:linear-gradient(135deg,#1e293b,#0f2438);border:1px solid var(--line);border-radius:20px;padding:18px 18px 20px;margin:14px 0 20px}
-  .dash-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
-  .paid-amt{font-size:2rem;font-weight:800;letter-spacing:-.03em;line-height:1}
-  .paid-amt small{font-size:.9rem;font-weight:600;color:var(--muted)}
-  .pct{font-size:1.05rem;font-weight:800;color:var(--accent)}
+  /* mini progress bar (per-debt summary) */
   .bar{height:12px;background:#0b1424;border-radius:99px;overflow:hidden;margin:14px 0 4px;border:1px solid var(--line)}
   .bar span{display:block;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:99px;transition:width .5s ease}
-  .dash-meta{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-top:6px}
-  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
-  .stat{background:#0b1424;border:1px solid var(--line);border-radius:14px;padding:12px}
-  .stat .k{font-size:.72rem;color:var(--muted)}.stat .v{font-size:1.15rem;font-weight:800;margin-top:2px}
-  .stat .v.rem{color:var(--gold)}
+
+  /* white dashboard */
+  .dash{background:#ffffff;border-radius:22px;padding:20px;margin:14px 0 20px;color:#0f172a;box-shadow:0 10px 34px rgba(0,0,0,.35)}
+  .dash-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .dash-title{font-size:.78rem;color:#64748b;font-weight:700}
+  .dash-amt{font-size:2rem;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin-top:3px;color:#0f172a}
+  .dash-amt small{font-size:.9rem;font-weight:600;color:#94a3b8}
+  .dash-amtsub{font-size:.76rem;color:#94a3b8;margin-top:3px}
+  .donut{position:relative;width:112px;height:112px;flex-shrink:0}
+  .donut svg{width:100%;height:100%}
+  .donut #donutArc{transition:stroke-dasharray .6s ease}
+  .pctlabel{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .pctlabel b{font-size:1.5rem;font-weight:800;color:#0ea5e9;line-height:1}
+  .pctlabel span{font-size:.6rem;color:#94a3b8;margin-top:2px}
+  .statrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:18px}
+  .statcard{border-radius:14px;padding:11px 12px;color:#fff}
+  .statcard .k{font-size:.64rem;opacity:.92;font-weight:600}
+  .statcard .v{font-size:1.05rem;font-weight:800;margin-top:4px}
+  .statcard.remain{background:linear-gradient(135deg,#fbbf24,#f97316)}
+  .statcard.month{background:linear-gradient(135deg,#38bdf8,#2563eb)}
+  .statcard.done{background:linear-gradient(135deg,#34d399,#059669)}
+  .chart-title{font-size:.74rem;color:#64748b;font-weight:700;margin:20px 0 12px}
+  .barchart{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;height:118px}
+  .barcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%}
+  .barcol .track{flex:1;width:100%;display:flex;align-items:flex-end;background:#f1f5f9;border-radius:8px;overflow:hidden}
+  .barcol .fill{width:100%;border-radius:8px;transition:height .5s ease;min-height:4px}
+  .barcol .cnt{font-size:.6rem;font-weight:800;color:#0f172a}
+  .barcol .mo{font-size:.58rem;color:#94a3b8}
 
   .sec-title{font-size:.9rem;font-weight:700;color:var(--muted);margin:18px 4px 8px;text-transform:uppercase;letter-spacing:.04em}
   .debtrow{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
@@ -133,19 +152,28 @@
   </div>
 
   <div class="dash">
-    <div class="dash-top">
+    <div class="dash-head">
       <div>
-        <div class="paid-amt" id="paidAmt">0 <small>บาท</small></div>
-        <div class="sub" style="margin-top:4px">จ่ายไปแล้ว จากทั้งหมด <span id="totalAmt">0</span> บาท</div>
+        <div class="dash-title">จ่ายไปแล้ว</div>
+        <div class="dash-amt" id="paidAmt">0 <small>บาท</small></div>
+        <div class="dash-amtsub">จากทั้งหมด <span id="totalAmt">0</span> บาท</div>
       </div>
-      <div class="pct" id="pctText">0%</div>
+      <div class="donut">
+        <svg viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.5" fill="none" stroke="#eef2f6" stroke-width="4"></circle>
+          <circle id="donutArc" cx="18" cy="18" r="15.5" fill="none" stroke="url(#dg)" stroke-width="4" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 18 18)"></circle>
+          <defs><linearGradient id="dg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0ea5e9"></stop><stop offset="1" stop-color="#22d3ee"></stop></linearGradient></defs>
+        </svg>
+        <div class="pctlabel"><b id="donutPct">0%</b><span id="paidCount">0/32</span></div>
+      </div>
     </div>
-    <div class="bar"><span id="mainBar" style="width:0%"></span></div>
-    <div class="dash-meta"><span id="paidCount">0 / 32 งวด</span><span id="monthsDone">0 / 8 เดือนครบ</span></div>
-    <div class="stats">
-      <div class="stat"><div class="k">คงเหลือต้องจ่าย</div><div class="v rem" id="remainAmt">0 บาท</div></div>
-      <div class="stat"><div class="k">ต่อเดือน</div><div class="v">9,956 บาท</div></div>
+    <div class="statrow">
+      <div class="statcard remain"><div class="k">คงเหลือ (บาท)</div><div class="v" id="remainAmt">0</div></div>
+      <div class="statcard month"><div class="k">ต่อเดือน</div><div class="v">9,956</div></div>
+      <div class="statcard done"><div class="k">เดือนครบ</div><div class="v" id="monthsDone">0/8</div></div>
     </div>
+    <div class="chart-title">จ่ายครบกี่รายการต่อเดือน (เต็ม = 4)</div>
+    <div class="barchart" id="barChart"></div>
   </div>
 
   <div class="sec-title">สรุปตามเจ้าหนี้</div>
@@ -195,6 +223,7 @@ const BANKS=["","กสิกรไทย (KBANK)","ไทยพาณิชย�
 // ใส่ Web app URL ตรงนี้ได้ หรือกรอกผ่านปุ่ม ⚙ ในแอป
 const ENDPOINT_DEFAULT="https://script.google.com/macros/s/AKfycby9PN6c8D9Y2x7oJ629jqK-gITi13cpROlBfmPMrhnONPps9X48QOXPjdr5kM6QS12_/exec";
 
+const DEBT_COLORS={cham:"#f43f5e",krungsri:"#f59e0b",ngern:"#10b981",ktc:"#3b82f6"};
 const PER_MONTH=DEBTS.reduce((s,d)=>s+d.amt,0);
 const TOTAL=PER_MONTH*MONTHS.length;
 const KEY="ekDebtTracker_v2";
@@ -247,7 +276,7 @@ function syncHeights(){
 }
 
 function render(){
-  let paidAmt=0,paidCount=0,monthsDone=0;
+  let paidAmt=0,paidCount=0,monthsDone=0;const monthlyCounts=[];
   MONTHS.forEach(mn=>{
     const card=monthsEl.querySelector(`[data-m="${mn.k}"]`);
     let cnt=0;
@@ -265,6 +294,7 @@ function render(){
         meta.innerHTML=html;meta.style.display="flex";
       }else{meta.style.display="none";meta.innerHTML=""}
     });
+    monthlyCounts.push(cnt);
     const done=cnt===DEBTS.length;if(done)monthsDone++;
     card.classList.toggle("done",done);
     const remain=DEBTS.filter(d=>!isPaid(mn.k,d.id)).reduce((s,d)=>s+d.amt,0);
@@ -273,18 +303,31 @@ function render(){
   const pct=Math.round(paidAmt/TOTAL*100);
   $("#paidAmt").innerHTML=`${fmt(paidAmt)} <small>บาท</small>`;
   $("#totalAmt").textContent=fmt(TOTAL);
-  $("#remainAmt").textContent=fmt(TOTAL-paidAmt)+" บาท";
-  $("#pctText").textContent=pct+"%";
-  $("#mainBar").style.width=pct+"%";
-  $("#paidCount").textContent=`${paidCount} / ${DEBTS.length*MONTHS.length} งวด`;
-  $("#monthsDone").textContent=`${monthsDone} / ${MONTHS.length} เดือนครบ`;
+  $("#remainAmt").textContent=fmt(TOTAL-paidAmt);
+  $("#donutPct").textContent=pct+"%";
+  $("#donutArc").setAttribute("stroke-dasharray",`${pct} ${100-pct}`);
+  $("#paidCount").textContent=`${paidCount}/${DEBTS.length*MONTHS.length} งวด`;
+  $("#monthsDone").textContent=`${monthsDone}/${MONTHS.length}`;
+
+  // monthly bar chart
+  const bc=$("#barChart");bc.innerHTML="";
+  MONTHS.forEach((mn,i)=>{
+    const c=monthlyCounts[i];const h=Math.round(c/DEBTS.length*100);
+    const color=c===DEBTS.length?"linear-gradient(180deg,#34d399,#059669)":"linear-gradient(180deg,#38bdf8,#0ea5e9)";
+    const col=document.createElement("div");col.className="barcol";
+    col.innerHTML=`<div class="cnt">${c}</div>
+      <div class="track"><div class="fill" style="height:${h}%;background:${color}"></div></div>
+      <div class="mo">${mn.mo}</div>`;
+    bc.appendChild(col);
+  });
+
   const box=$("#debtSummary");box.innerHTML="";
   DEBTS.forEach(d=>{
     const paidN=MONTHS.filter(mn=>isPaid(mn.k,d.id)).length;
     const p=Math.round(paidN/MONTHS.length*100);
     const row=document.createElement("div");row.className="debtrow";
     row.innerHTML=`<div class="name"><b>${d.name}</b><div class="per">${fmt(d.amt)} บาท/เดือน</div></div>
-      <div class="mini"><div class="bar"><span style="width:${p}%"></span></div></div>
+      <div class="mini"><div class="bar"><span style="width:${p}%;background:${DEBT_COLORS[d.id]}"></span></div></div>
       <div class="cnt">${paidN}/${MONTHS.length}</div>`;
     box.appendChild(row);
   });
@@ -325,7 +368,7 @@ function openSheet(m,dId){
       <div class="field">
         <label>สลิปโอนเงิน</label>
         <label class="slipbtn" for="slipInput">📷 ถ่าย / เลือกรูปสลิป</label>
-        <input id="slipInput" type="file" accept="image/*" capture="environment" style="display:none">
+        <input id="slipInput" type="file" accept="image/*" style="display:none">
         <div class="preview" id="prev"><img id="prevImg" alt=""></div>
       </div>
       <div class="field">
