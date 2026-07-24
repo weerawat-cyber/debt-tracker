@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Dashboard รายจ่ายตามเดือน · คุณเอก</title>
+<meta name="theme-color" content="#0f172a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230ea5e9'/%3E%3Cpath d='M40 130 L70 90 L95 110 L140 55' stroke='white' stroke-width='12' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#0f172a;--card:#1e293b;--line:#334155;--txt:#f1f5f9;--muted:#94a3b8;
+    --accent:#38bdf8;--accent2:#0ea5e9;--gold:#fbbf24;--green:#22c55e;--red:#f43f5e;
+    --safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Sarabun",sans-serif;background:var(--bg);color:var(--txt);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:720px;margin:0 auto;padding:calc(16px + var(--safe-t)) 14px calc(60px + var(--safe-b))}
+  header{display:flex;align-items:flex-start;gap:8px;margin-bottom:14px}
+  header .grow{flex:1}
+  h1{font-size:1.3rem;font-weight:800;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:.8rem;margin-top:2px}
+  a.backlink{color:var(--accent);text-decoration:none;font-size:.78rem}
+
+  /* upload zone */
+  .upzone{background:var(--card);border:2px dashed var(--line);border-radius:18px;padding:26px 18px;text-align:center;margin-bottom:16px;transition:.15s}
+  .upzone.drag{border-color:var(--accent);background:#0b2a3d}
+  .upzone .ico{font-size:2rem}
+  .upzone .t{font-weight:700;margin-top:8px}
+  .upzone .s{color:var(--muted);font-size:.78rem;margin-top:4px}
+  .upbtn{display:inline-block;margin-top:14px;background:var(--accent2);color:#04212f;font-weight:800;padding:11px 22px;border-radius:12px;border:0;font-size:.9rem;cursor:pointer}
+  #fileInput{display:none}
+  .filemeta{margin-top:12px;font-size:.76rem;color:var(--muted)}
+  .filemeta b{color:var(--accent)}
+
+  .empty-hint{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:.82rem;color:var(--muted);line-height:1.7;margin-bottom:16px}
+  .empty-hint b{color:var(--txt)}
+  .empty-hint code{background:#0b1424;padding:1px 6px;border-radius:5px;color:var(--accent)}
+
+  /* dashboard (white card) */
+  #dashArea{display:none}
+  .dash{background:#fff;color:#0f172a;border-radius:22px;padding:20px;margin-bottom:18px;box-shadow:0 10px 34px rgba(0,0,0,.35)}
+  .dash-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .dash-title{font-size:.78rem;color:#64748b;font-weight:700}
+  .dash-amt{font-size:2rem;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin-top:3px}
+  .dash-amt small{font-size:.9rem;font-weight:600;color:#94a3b8}
+  .dash-sub{font-size:.76rem;color:#94a3b8;margin-top:3px}
+  .donut{position:relative;width:104px;height:104px;flex-shrink:0}
+  .donut svg{width:100%;height:100%}
+  .pctlabel{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .pctlabel b{font-size:1.3rem;font-weight:800;color:#0ea5e9;line-height:1}
+  .pctlabel span{font-size:.58rem;color:#94a3b8;margin-top:2px;text-align:center}
+
+  .statrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:18px}
+  .statcard{border-radius:14px;padding:11px 12px;color:#fff}
+  .statcard .k{font-size:.62rem;opacity:.92;font-weight:600}
+  .statcard .v{font-size:1.02rem;font-weight:800;margin-top:4px}
+  .statcard.c1{background:linear-gradient(135deg,#fbbf24,#f97316)}
+  .statcard.c2{background:linear-gradient(135deg,#38bdf8,#2563eb)}
+  .statcard.c3{background:linear-gradient(135deg,#34d399,#059669)}
+
+  .chart-title{font-size:.74rem;color:#64748b;font-weight:700;margin:20px 0 12px}
+  .barchart{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;height:150px;overflow-x:auto}
+  .barcol{flex:1;min-width:34px;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%}
+  .barcol .track{flex:1;width:100%;display:flex;align-items:flex-end;background:#f1f5f9;border-radius:8px;overflow:hidden}
+  .barcol .fill{width:100%;border-radius:8px;transition:height .5s ease;min-height:3px;background:linear-gradient(180deg,#38bdf8,#0ea5e9)}
+  .barcol .amt{font-size:.56rem;font-weight:800;color:#0f172a;white-space:nowrap}
+  .barcol .mo{font-size:.6rem;color:#94a3b8;white-space:nowrap}
+
+  .sec-title{font-size:.9rem;font-weight:700;color:var(--muted);margin:18px 4px 8px;text-transform:uppercase;letter-spacing:.04em}
+  .catrow{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+  .catrow .dot{width:10px;height:10px;border-radius:99px;flex-shrink:0}
+  .catrow .name{flex:1;min-width:0;font-size:.88rem;font-weight:600}
+  .catrow .amt{font-size:.86rem;font-weight:800;color:var(--accent)}
+  .catbar{height:7px;background:#0b1424;border-radius:99px;overflow:hidden;margin-top:6px;border:1px solid var(--line)}
+  .catbar span{display:block;height:100%;border-radius:99px}
+
+  table.rawtable{width:100%;border-collapse:collapse;font-size:.76rem;margin-top:4px}
+  table.rawtable th,table.rawtable td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+  table.rawtable th{color:var(--muted);font-weight:700;position:sticky;top:0;background:var(--card)}
+  .tablewrap{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 10px;overflow-x:auto;max-height:340px;overflow-y:auto}
+  details{margin-top:10px}
+  summary{cursor:pointer;font-size:.82rem;color:var(--accent);font-weight:700;padding:6px 0}
+
+  .actions{display:flex;gap:8px;margin-top:16px}
+  .actions button{flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:.8rem;cursor:pointer}
+  .actions button.reup{color:var(--accent);border-color:#0c4a6e}
+
+  .toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:#0b1424;border:1px solid var(--line);color:var(--txt);padding:11px 18px;border-radius:12px;font-size:.85rem;z-index:60;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%;text-align:center}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="grow">
+      <h1>รายจ่ายตามเดือน</h1>
+      <div class="sub">คุณเอก · อัปเดตข้อมูลด้วยไฟล์ Excel</div>
+    </div>
+  </header>
+
+  <div class="upzone" id="upzone">
+    <div class="ico">📊</div>
+    <div class="t">ลากไฟล์ Excel มาวาง หรือกดเลือกไฟล์</div>
+    <div class="s">รองรับ .xlsx .xls .csv — export จาก Google Sheet (แท็บ Payments) ได้เลย</div>
+    <button class="upbtn" id="upbtn">เลือกไฟล์ Excel</button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+    <div class="filemeta" id="filemeta"></div>
+  </div>
+
+  <div class="empty-hint" id="emptyHint">
+    วิธีอัปเดตข้อมูล: เปิด Google Sheet ที่เก็บรายการจ่ายหนี้ → <b>ไฟล์ &gt; ดาวน์โหลด &gt; Microsoft Excel (.xlsx)</b> → เอาไฟล์ที่ได้มาอัปโหลดที่นี่
+    ต้องมีคอลัมน์อย่างน้อย <code>เดือน</code> และ <code>จำนวนเงิน</code> (มีคอลัมน์ <code>เจ้าหนี้</code> ด้วยจะแยกสัดส่วนให้)
+    ข้อมูลจะถูกจำไว้ในเครื่องนี้ อัปโหลดไฟล์ใหม่เมื่อไหร่ก็อัปเดตทันที
+  </div>
+
+  <div id="dashArea">
+    <div class="dash">
+      <div class="dash-head">
+        <div>
+          <div class="dash-title">รายจ่ายรวม</div>
+          <div class="dash-amt" id="totalAmt">0 <small>บาท</small></div>
+          <div class="dash-sub" id="rangeSub">—</div>
+        </div>
+        <div class="donut">
+          <svg viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="#eef2f6" stroke-width="4"></circle>
+            <circle id="donutArc" cx="18" cy="18" r="15.5" fill="none" stroke="url(#dg)" stroke-width="4" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 18 18)"></circle>
+            <defs><linearGradient id="dg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0ea5e9"></stop><stop offset="1" stop-color="#22d3ee"></stop></linearGradient></defs>
+          </svg>
+          <div class="pctlabel"><b id="donutMax">-</b><span id="donutSub">เดือนสูงสุด</span></div>
+        </div>
+      </div>
+      <div class="statrow">
+        <div class="statcard c1"><div class="k">เฉลี่ย/เดือน</div><div class="v" id="avgAmt">0</div></div>
+        <div class="statcard c2"><div class="k">จำนวนเดือน</div><div class="v" id="monthCount">0</div></div>
+        <div class="statcard c3"><div class="k">จำนวนรายการ</div><div class="v" id="rowCount">0</div></div>
+      </div>
+      <div class="chart-title">รายจ่ายต่อเดือน (บาท)</div>
+      <div class="barchart" id="barChart"></div>
+    </div>
+
+    <div class="sec-title" id="catSecTitle">สัดส่วนตามหมวด</div>
+    <div id="catSummary"></div>
+
+    <details>
+      <summary>ดูข้อมูลดิบทั้งหมด</summary>
+      <div class="tablewrap"><table class="rawtable" id="rawTable"></table></div>
+    </details>
+
+    <div class="actions">
+      <button class="reup" id="reuploadBtn">อัปโหลดไฟล์ใหม่</button>
+      <button id="clearBtn">ล้างข้อมูล</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const fmt=n=>Math.round(n).toLocaleString("th-TH");
+const THAI_MONTHS=["","ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+const CAT_COLORS=["#f43f5e","#f59e0b","#10b981","#3b82f6","#8b5cf6","#ec4899","#14b8a6","#eab308"];
+const KEY="ekExpenseDash_v1";
+
+let toT;
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toT);toT=setTimeout(()=>t.classList.remove("show"),2800)}
+
+function monthLabel(v){
+  const s=String(v).trim();
+  const m=s.match(/^(\d{4})-(\d{1,2})$/);
+  if(m){ const mo=+m[2]; return (THAI_MONTHS[mo]||s)+" "+m[1]; }
+  return s;
+}
+function monthSortKey(v){
+  const s=String(v).trim();
+  const m=s.match(/^(\d{4})-(\d{1,2})$/);
+  if(m) return m[1]+String(+m[2]).padStart(2,"0");
+  return s;
+}
+
+/* ---------- find header row + column mapping ---------- */
+function pickCol(headers, candidates){
+  for(const cand of candidates){
+    const idx=headers.findIndex(h=>String(h||"").trim().toLowerCase().includes(cand.toLowerCase()));
+    if(idx!==-1) return idx;
+  }
+  return -1;
+}
+
+function parseRows(aoa){
+  // find the row that looks like a header (contains "เดือน" or "month" or "amount"/"จำนวนเงิน")
+  let headerRowIdx=-1, headers=null;
+  for(let i=0;i<Math.min(aoa.length,10);i++){
+    const row=aoa[i].map(c=>String(c||""));
+    const joined=row.join("|").toLowerCase();
+    if(joined.includes("เดือน")||joined.includes("month")||joined.includes("จำนวนเงิน")||joined.includes("amount")){
+      headerRowIdx=i; headers=row; break;
+    }
+  }
+  if(headerRowIdx===-1){ headerRowIdx=0; headers=aoa[0].map(c=>String(c||"")); }
+
+  const monthCol = pickCol(headers, ["เดือน","month"]);
+  const amountCol = pickCol(headers, ["จำนวนเงิน","amount","actual","budget"]);
+  const catCol = pickCol(headers, ["เจ้าหนี้","หมวด","ประเภทของค่าใช้จ่าย","expense group","category","media type"]);
+  const bankCol = pickCol(headers, ["ธนาคาร","bank"]);
+  const statusCol = pickCol(headers, ["สถานะ","status"]);
+
+  if(monthCol===-1 || amountCol===-1){
+    return {error:"ไม่พบคอลัมน์ 'เดือน' หรือ 'จำนวนเงิน' ในไฟล์ — ตรวจสอบว่า export มาจากแท็บ Payments ถูกต้อง"};
+  }
+
+  const rows=[];
+  for(let i=headerRowIdx+1;i<aoa.length;i++){
+    const r=aoa[i];
+    if(!r || r.every(c=>c===undefined||c===null||String(c).trim()==="")) continue;
+    const monthRaw=r[monthCol];
+    const amountRaw=r[amountCol];
+    if(monthRaw===undefined||monthRaw===null||String(monthRaw).trim()==="") continue;
+    const amount=Number(String(amountRaw).replace(/[, ]/g,""))||0;
+    if(!amount) continue;
+    rows.push({
+      month:String(monthRaw).trim(),
+      amount,
+      cat: catCol!==-1 ? String(r[catCol]||"ไม่ระบุ").trim()||"ไม่ระบุ" : "ไม่ระบุ",
+      bank: bankCol!==-1 ? String(r[bankCol]||"").trim() : "",
+      status: statusCol!==-1 ? String(r[statusCol]||"").trim() : "",
+    });
+  }
+  return {rows, headers:{monthCol,amountCol,catCol,bankCol,statusCol}};
+}
+
+/* ---------- render dashboard from rows ---------- */
+function renderDashboard(rows){
+  if(!rows.length){ toast("ไม่พบข้อมูลที่ใช้ได้ในไฟล์นี้"); return; }
+
+  const byMonth={};
+  rows.forEach(r=>{ byMonth[r.month]=(byMonth[r.month]||0)+r.amount; });
+  const months=Object.keys(byMonth).sort((a,b)=>monthSortKey(a).localeCompare(monthSortKey(b)));
+  const total=rows.reduce((s,r)=>s+r.amount,0);
+  const maxMonth=months.reduce((mx,m)=>byMonth[m]>(byMonth[mx]||0)?m:mx, months[0]);
+  const maxVal=Math.max(...months.map(m=>byMonth[m]),1);
+
+  $("#totalAmt").innerHTML=`${fmt(total)} <small>บาท</small>`;
+  $("#rangeSub").textContent = months.length ? `${monthLabel(months[0])} – ${monthLabel(months[months.length-1])}` : "—";
+  $("#avgAmt").textContent=fmt(total/(months.length||1));
+  $("#monthCount").textContent=months.length;
+  $("#rowCount").textContent=rows.length;
+  $("#donutMax").textContent=monthLabel(maxMonth).split(" ")[0]||"-";
+  $("#donutSub").textContent="เดือนสูงสุด: "+fmt(byMonth[maxMonth]||0);
+  const pct=Math.round((byMonth[maxMonth]||0)/ (total||1) *100);
+  $("#donutArc").setAttribute("stroke-dasharray",`${pct} ${100-pct}`);
+
+  const bc=$("#barChart");bc.innerHTML="";
+  months.forEach(m=>{
+    const v=byMonth[m];const h=Math.max(Math.round(v/maxVal*100),3);
+    const col=document.createElement("div");col.className="barcol";
+    col.innerHTML=`<div class="amt">${fmt(v)}</div>
+      <div class="track"><div class="fill" style="height:${h}%"></div></div>
+      <div class="mo">${monthLabel(m).split(" ")[0]}</div>`;
+    bc.appendChild(col);
+  });
+
+  const byCat={};
+  rows.forEach(r=>{ byCat[r.cat]=(byCat[r.cat]||0)+r.amount; });
+  const cats=Object.keys(byCat).sort((a,b)=>byCat[b]-byCat[a]);
+  $("#catSecTitle").style.display = (cats.length<=1 && cats[0]==="ไม่ระบุ") ? "none":"block";
+  const catBox=$("#catSummary");catBox.innerHTML="";
+  if(!(cats.length<=1 && cats[0]==="ไม่ระบุ")){
+    cats.forEach((c,i)=>{
+      const v=byCat[c];const p=Math.round(v/(total||1)*100);
+      const color=CAT_COLORS[i%CAT_COLORS.length];
+      const row=document.createElement("div");row.className="catrow";
+      row.style.flexDirection="column";row.style.alignItems="stretch";
+      row.innerHTML=`<div style="display:flex;align-items:center;gap:10px">
+          <span class="dot" style="background:${color}"></span>
+          <span class="name">${c}</span>
+          <span class="amt">${fmt(v)} บาท</span>
+        </div>
+        <div class="catbar"><span style="width:${p}%;background:${color}"></span></div>`;
+      catBox.appendChild(row);
+    });
+  }
+
+  // raw table
+  const t=$("#rawTable");
+  t.innerHTML=`<tr><th>เดือน</th><th>หมวด/เจ้าหนี้</th><th>จำนวนเงิน</th><th>ธนาคาร</th><th>สถานะ</th></tr>` +
+    rows.map(r=>`<tr><td>${monthLabel(r.month)}</td><td>${r.cat}</td><td>${fmt(r.amount)}</td><td>${r.bank||"—"}</td><td>${r.status||"—"}</td></tr>`).join("");
+
+  $("#dashArea").style.display="block";
+  $("#emptyHint").style.display="none";
+}
+
+function handleWorkbook(wb, filename){
+  const sheetName = wb.SheetNames.find(n=>/payment/i.test(n)) || wb.SheetNames[0];
+  const ws = wb.Sheets[sheetName];
+  const aoa = XLSX.utils.sheet_to_json(ws, {header:1, raw:false, defval:""});
+  const result = parseRows(aoa);
+  if(result.error){ toast(result.error); return; }
+  localStorage.setItem(KEY, JSON.stringify({rows:result.rows, filename, ts:Date.now()}));
+  $("#filemeta").innerHTML=`ไฟล์: <b>${filename}</b> · ${result.rows.length} รายการ`;
+  renderDashboard(result.rows);
+  toast("อัปเดตข้อมูลสำเร็จ ✓");
+}
+
+function readFile(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=new Uint8Array(e.target.result);
+      const wb=XLSX.read(data,{type:"array"});
+      handleWorkbook(wb, file.name);
+    }catch(err){ toast("อ่านไฟล์ไม่สำเร็จ: "+err.message); }
+  };
+  reader.onerror=()=>toast("อ่านไฟล์ไม่สำเร็จ");
+  reader.readAsArrayBuffer(file);
+}
+
+/* ---------- upload UI wiring ---------- */
+const upzone=$("#upzone"), fileInput=$("#fileInput");
+$("#upbtn").addEventListener("click",()=>fileInput.click());
+fileInput.addEventListener("change",()=>{ if(fileInput.files[0]) readFile(fileInput.files[0]); });
+["dragover","dragenter"].forEach(ev=>upzone.addEventListener(ev,e=>{e.preventDefault();upzone.classList.add("drag")}));
+["dragleave","drop"].forEach(ev=>upzone.addEventListener(ev,e=>{e.preventDefault();upzone.classList.remove("drag")}));
+upzone.addEventListener("drop",e=>{ const f=e.dataTransfer.files[0]; if(f) readFile(f); });
+
+$("#reuploadBtn").addEventListener("click",()=>fileInput.click());
+$("#clearBtn").addEventListener("click",()=>{
+  if(confirm("ล้างข้อมูล dashboard ทั้งหมด?")){
+    localStorage.removeItem(KEY);
+    $("#dashArea").style.display="none";
+    $("#emptyHint").style.display="block";
+    $("#filemeta").innerHTML="";
+    toast("ล้างข้อมูลแล้ว");
+  }
+});
+
+/* ---------- restore last data ---------- */
+(function init(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(KEY));
+    if(saved && saved.rows && saved.rows.length){
+      $("#filemeta").innerHTML=`ไฟล์ล่าสุด: <b>${saved.filename||"—"}</b> · ${saved.rows.length} รายการ · อัปเดต ${new Date(saved.ts).toLocaleString("th-TH",{dateStyle:"medium",timeStyle:"short"})}`;
+      renderDashboard(saved.rows);
+    }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
