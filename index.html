@@ -474,6 +474,11 @@ const mlink=document.createElement("link");mlink.rel="manifest";
 mlink.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"}));
 document.head.appendChild(mlink);
 
+/* service worker: network-first (อัปเดตใหม่เสมอ + offline ได้) */
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+
 buildMonths();render();
 </script>
 </body>
