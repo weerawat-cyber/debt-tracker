@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>เช็คจ่ายหนี้ · คุณเอก</title>
+
+<!-- ===== PWA / App-like ===== -->
+<meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="เช็คจ่ายหนี้">
+<!-- App icon (inline SVG) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230ea5e9'/%3E%3Cpath d='M55 92l22 22 46-52' stroke='white' stroke-width='14' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230ea5e9'/%3E%3Cpath d='M55 92l22 22 46-52' stroke='white' stroke-width='14' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+
+<style>
+  :root{
+    --bg:#0f172a; --bg2:#1e293b; --card:#1e293b; --line:#334155;
+    --txt:#f1f5f9; --muted:#94a3b8; --accent:#38bdf8; --accent2:#0ea5e9;
+    --gold:#fbbf24; --green:#22c55e; --red:#f87171;
+    --safe-t:env(safe-area-inset-top,0px);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+  html,body{overscroll-behavior-y:none}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Sarabun",sans-serif;
+    background:var(--bg);color:var(--txt);line-height:1.5;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:calc(16px + var(--safe-t)) 14px calc(70px + var(--safe-b));}
+
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,var(--bg) 70%,transparent);padding-top:var(--safe-t)}
+  h1{font-size:1.35rem;font-weight:800;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:.82rem;margin-top:2px}
+
+  /* install banner */
+  .install{display:none;align-items:center;gap:10px;background:#0b2a3d;border:1px solid var(--accent2);border-radius:12px;padding:10px 12px;margin:12px 0;font-size:.82rem}
+  .install b{color:var(--accent)}
+  .install .x{margin-left:auto;color:var(--muted);font-size:1.2rem;padding:0 4px}
+  .install button{background:var(--accent2);color:#04212f;border:0;border-radius:8px;padding:7px 12px;font-weight:700;font-size:.8rem}
+
+  .dash{background:linear-gradient(135deg,#1e293b,#0f2438);border:1px solid var(--line);border-radius:20px;padding:18px 18px 20px;margin:14px 0 20px}
+  .dash-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+  .paid-amt{font-size:2rem;font-weight:800;letter-spacing:-.03em;line-height:1}
+  .paid-amt small{font-size:.9rem;font-weight:600;color:var(--muted)}
+  .pct{font-size:1.05rem;font-weight:800;color:var(--accent)}
+  .bar{height:12px;background:#0b1424;border-radius:99px;overflow:hidden;margin:14px 0 4px;border:1px solid var(--line)}
+  .bar span{display:block;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:99px;transition:width .5s ease}
+  .dash-meta{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-top:6px}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+  .stat{background:#0b1424;border:1px solid var(--line);border-radius:14px;padding:12px}
+  .stat .k{font-size:.72rem;color:var(--muted)}
+  .stat .v{font-size:1.15rem;font-weight:800;margin-top:2px}
+  .stat .v.rem{color:var(--gold)}
+
+  .sec-title{font-size:.9rem;font-weight:700;color:var(--muted);margin:18px 4px 8px;text-transform:uppercase;letter-spacing:.04em}
+  .debtrow{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+  .debtrow .name{flex:1;min-width:0}
+  .debtrow .name b{font-size:.92rem;font-weight:700}
+  .debtrow .name .per{font-size:.72rem;color:var(--muted)}
+  .mini{width:70px}.mini .bar{height:7px;margin:5px 0 0}
+  .debtrow .cnt{font-size:.75rem;color:var(--muted);width:34px;text-align:right}
+
+  .month{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:12px;overflow:hidden}
+  .month.done{border-color:var(--gold)}
+  .m-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
+  .m-head .badge{width:44px;height:44px;border-radius:12px;background:#0b1424;border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+  .m-head .badge .mo{font-size:.95rem;font-weight:800;line-height:1}
+  .m-head .badge .yr{font-size:.6rem;color:var(--muted)}
+  .month.done .badge{background:var(--gold);border-color:var(--gold)}
+  .month.done .badge .mo,.month.done .badge .yr{color:#3a2c00}
+  .m-head .info{flex:1;min-width:0}
+  .m-head .info .t{font-weight:700;font-size:.98rem}
+  .m-head .info .s{font-size:.76rem;color:var(--muted);margin-top:1px}
+  .month.done .info .s{color:var(--gold)}
+  .m-head .chev{color:var(--muted);transition:transform .25s;font-size:1.1rem}
+  .month.open .chev{transform:rotate(90deg)}
+  .m-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .items{padding:2px 12px 10px}
+  .item{display:flex;align-items:center;gap:12px;padding:13px 6px;border-top:1px solid var(--line)}
+  .chk{width:28px;height:28px;border-radius:8px;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#0b1424;transition:.15s;font-size:.9rem;color:transparent}
+  .item.paid .chk{background:var(--green);border-color:var(--green);color:#04210f}
+  .item .lbl{flex:1;min-width:0}.item .lbl .n{font-size:.9rem;font-weight:600}
+  .item.paid .lbl .n{color:var(--muted);text-decoration:line-through}
+  .item .amt{font-weight:700;font-size:.92rem}.item.paid .amt{color:var(--green)}
+  .foot{display:flex;justify-content:space-between;padding:10px 8px 2px;font-size:.82rem;border-top:1px solid var(--line);margin-top:2px}
+  .foot b{color:var(--txt)}
+  .allbtn{width:100%;margin-top:8px;padding:11px;border:1px dashed var(--line);background:transparent;color:var(--accent);border-radius:10px;font-size:.82rem;font-weight:600}
+  .allbtn:active{background:#0b1424}
+  .reset{display:block;margin:28px auto 0;padding:9px 20px;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:10px;font-size:.8rem}
+  .save-note{text-align:center;color:var(--muted);font-size:.72rem;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>เช็คจ่ายหนี้</h1>
+    <div class="sub">คุณเอก · พ.ค.–ธ.ค. 2026</div>
+  </header>
+
+  <div class="install" id="installBar">
+    <div><b>ติดตั้งเป็นแอป</b><br id="installBr">แตะเพิ่มลงหน้าจอหลัก</div>
+    <button id="installBtn">ติดตั้ง</button>
+    <span class="x" id="installX">×</span>
+  </div>
+
+  <div class="dash">
+    <div class="dash-top">
+      <div>
+        <div class="paid-amt" id="paidAmt">0 <small>บาท</small></div>
+        <div class="sub" style="margin-top:4px">จ่ายไปแล้ว จากทั้งหมด <span id="totalAmt">0</span> บาท</div>
+      </div>
+      <div class="pct" id="pctText">0%</div>
+    </div>
+    <div class="bar"><span id="mainBar" style="width:0%"></span></div>
+    <div class="dash-meta"><span id="paidCount">0 / 32 งวด</span><span id="monthsDone">0 / 8 เดือนครบ</span></div>
+    <div class="stats">
+      <div class="stat"><div class="k">คงเหลือต้องจ่าย</div><div class="v rem" id="remainAmt">0 บาท</div></div>
+      <div class="stat"><div class="k">ต่อเดือน</div><div class="v">9,956 บาท</div></div>
+    </div>
+  </div>
+
+  <div class="sec-title">สรุปตามเจ้าหนี้</div>
+  <div id="debtSummary"></div>
+
+  <div class="sec-title">เช็คจ่ายรายเดือน</div>
+  <div id="months"></div>
+
+  <button class="reset" id="resetBtn">ล้างข้อมูลทั้งหมด</button>
+  <div class="save-note">ข้อมูลบันทึกในเครื่องอัตโนมัติ · ใช้งานได้แม้ไม่มีเน็ต</div>
+</div>
+
+<script>
+const DEBTS=[
+  {id:"cham",name:"คลีนิคแก้หนี้ (แชม)",amt:5250},
+  {id:"krungsri",name:"กรุงศรี",amt:740},
+  {id:"ngern",name:"เงินติดล้อ",amt:2266},
+  {id:"ktc",name:"KTC",amt:1700},
+];
+const MONTHS=[
+  {k:"2026-05",mo:"พ.ค.",yr:"2026"},{k:"2026-06",mo:"มิ.ย.",yr:"2026"},
+  {k:"2026-07",mo:"ก.ค.",yr:"2026"},{k:"2026-08",mo:"ส.ค.",yr:"2026"},
+  {k:"2026-09",mo:"ก.ย.",yr:"2026"},{k:"2026-10",mo:"ต.ค.",yr:"2026"},
+  {k:"2026-11",mo:"พ.ย.",yr:"2026"},{k:"2026-12",mo:"ธ.ค.",yr:"2026"},
+];
+const PER_MONTH=DEBTS.reduce((s,d)=>s+d.amt,0);
+const TOTAL=PER_MONTH*MONTHS.length;
+const KEY="ekDebtTracker_v1";
+const fmt=n=>n.toLocaleString("th-TH");
+let state=load();
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function isPaid(m,d){return !!(state[m]&&state[m][d])}
+function setPaid(m,d,v){state[m]=state[m]||{};state[m][d]=v;save()}
+const $=s=>document.querySelector(s);
+const monthsEl=$("#months");
+
+function buildMonths(){
+  monthsEl.innerHTML="";
+  MONTHS.forEach(mn=>{
+    const card=document.createElement("div");
+    card.className="month";card.dataset.m=mn.k;
+    card.innerHTML=`
+      <div class="m-head">
+        <div class="badge"><span class="mo">${mn.mo}</span><span class="yr">${mn.yr}</span></div>
+        <div class="info"><div class="t">เดือน ${mn.mo} ${mn.yr}</div><div class="s"></div></div>
+        <div class="chev">›</div>
+      </div>
+      <div class="m-body"><div class="items">
+        ${DEBTS.map(d=>`
+          <div class="item" data-d="${d.id}">
+            <div class="chk">✓</div>
+            <div class="lbl"><div class="n">${d.name}</div></div>
+            <div class="amt">${fmt(d.amt)}</div>
+          </div>`).join("")}
+        <div class="foot"><span>รวมเดือนนี้</span><b>${fmt(PER_MONTH)} บาท</b></div>
+        <button class="allbtn">เช็คจ่ายครบทั้งเดือน</button>
+      </div></div>`;
+    card.querySelector(".m-head").addEventListener("click",()=>{card.classList.toggle("open");syncHeights();});
+    card.querySelectorAll(".item").forEach(it=>{
+      it.addEventListener("click",()=>{const d=it.dataset.d;setPaid(mn.k,d,!isPaid(mn.k,d));render();});
+    });
+    card.querySelector(".allbtn").addEventListener("click",e=>{
+      e.stopPropagation();
+      const all=DEBTS.every(d=>isPaid(mn.k,d.id));
+      DEBTS.forEach(d=>setPaid(mn.k,d.id,!all));render();
+    });
+    monthsEl.appendChild(card);
+  });
+}
+function syncHeights(){
+  document.querySelectorAll(".month").forEach(card=>{
+    const body=card.querySelector(".m-body");
+    body.style.maxHeight=card.classList.contains("open")?body.scrollHeight+"px":"0px";
+  });
+}
+function render(){
+  let paidAmt=0,paidCount=0,monthsDone=0;
+  MONTHS.forEach(mn=>{
+    const card=monthsEl.querySelector(`[data-m="${mn.k}"]`);
+    let cnt=0;
+    DEBTS.forEach(d=>{
+      const on=isPaid(mn.k,d.id);
+      const it=card.querySelector(`[data-d="${d.id}"]`);
+      it.classList.toggle("paid",on);
+      if(on){paidAmt+=d.amt;paidCount++;cnt++;}
+    });
+    const done=cnt===DEBTS.length;
+    if(done)monthsDone++;
+    card.classList.toggle("done",done);
+    const remain=DEBTS.filter(d=>!isPaid(mn.k,d.id)).reduce((s,d)=>s+d.amt,0);
+    card.querySelector(".info .s").textContent=done?"จ่ายครบแล้ว ✓":`จ่ายแล้ว ${cnt}/${DEBTS.length} · เหลือ ${fmt(remain)} บาท`;
+    card.querySelector(".allbtn").textContent=done?"ยกเลิกทั้งเดือน":"เช็คจ่ายครบทั้งเดือน";
+  });
+  const pct=Math.round(paidAmt/TOTAL*100);
+  $("#paidAmt").innerHTML=`${fmt(paidAmt)} <small>บาท</small>`;
+  $("#totalAmt").textContent=fmt(TOTAL);
+  $("#remainAmt").textContent=fmt(TOTAL-paidAmt)+" บาท";
+  $("#pctText").textContent=pct+"%";
+  $("#mainBar").style.width=pct+"%";
+  $("#paidCount").textContent=`${paidCount} / ${DEBTS.length*MONTHS.length} งวด`;
+  $("#monthsDone").textContent=`${monthsDone} / ${MONTHS.length} เดือนครบ`;
+  const box=$("#debtSummary");box.innerHTML="";
+  DEBTS.forEach(d=>{
+    const paidN=MONTHS.filter(mn=>isPaid(mn.k,d.id)).length;
+    const p=Math.round(paidN/MONTHS.length*100);
+    const row=document.createElement("div");row.className="debtrow";
+    row.innerHTML=`<div class="name"><b>${d.name}</b><div class="per">${fmt(d.amt)} บาท/เดือน</div></div>
+      <div class="mini"><div class="bar"><span style="width:${p}%"></span></div></div>
+      <div class="cnt">${paidN}/${MONTHS.length}</div>`;
+    box.appendChild(row);
+  });
+  syncHeights();
+}
+$("#resetBtn").addEventListener("click",()=>{
+  if(confirm("ล้างข้อมูลการจ่ายทั้งหมด? กู้คืนไม่ได้")){state={};save();render();}
+});
+
+/* ===== Install (Add to Home Screen) ===== */
+const bar=$("#installBar");
+let deferred=null;
+const isStandalone=window.matchMedia("(display-mode: standalone)").matches||navigator.standalone;
+const isiOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+if(!isStandalone && localStorage.getItem("ekHideInstall")!=="1"){
+  if(isiOS){
+    bar.style.display="flex";
+    $("#installBtn").style.display="none";
+    bar.querySelector("div").innerHTML='<b>ติดตั้งเป็นแอป</b><br>แตะปุ่มแชร์ แล้วเลือก “เพิ่มลงในหน้าจอโฮม”';
+  }
+}
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault();deferred=e;
+  if(localStorage.getItem("ekHideInstall")!=="1")bar.style.display="flex";
+});
+$("#installBtn").addEventListener("click",async()=>{
+  if(deferred){deferred.prompt();await deferred.userChoice;deferred=null;bar.style.display="none";}
+});
+$("#installX").addEventListener("click",()=>{bar.style.display="none";localStorage.setItem("ekHideInstall","1");});
+window.addEventListener("appinstalled",()=>bar.style.display="none");
+
+/* ===== Web App Manifest (inline) ===== */
+const icon="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%230ea5e9'/%3E%3Cpath d='M156 262l62 62 130-148' stroke='white' stroke-width='40' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
+const manifest={name:"เช็คจ่ายหนี้ · คุณเอก",short_name:"เช็คจ่ายหนี้",start_url:".",display:"standalone",background_color:"#0f172a",theme_color:"#0f172a",icons:[{src:icon,sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}]};
+const mlink=document.createElement("link");mlink.rel="manifest";
+mlink.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"}));
+document.head.appendChild(mlink);
+
+buildMonths();render();
+</script>
+</body>
+</html>
