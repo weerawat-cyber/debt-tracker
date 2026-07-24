@@ -367,8 +367,8 @@ function openSheet(m,dId){
       <div class="m-sub">เดือน ${mn.mo} ${mn.yr}</div>
       <div class="field">
         <label>สลิปโอนเงิน</label>
-        <label class="slipbtn" for="slipInput">📷 ถ่าย / เลือกรูปสลิป</label>
-        <input id="slipInput" type="file" accept="image/*" style="display:none">
+        <button type="button" class="slipbtn" id="slipBtn">📷 ถ่าย / เลือกรูปสลิป</button>
+        <input id="slipInput" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px">
         <div class="preview" id="prev"><img id="prevImg" alt=""></div>
       </div>
       <div class="field">
@@ -379,6 +379,7 @@ function openSheet(m,dId){
       <button class="btn ghost" id="noSlip">ทำเครื่องหมายว่าจ่ายแล้ว (ไม่มีสลิป)</button>
       <button class="btn ghost" id="closeS">ปิด</button>`;
     const input=sheet.querySelector("#slipInput");
+    sheet.querySelector("#slipBtn").onclick=()=>input.click();
     input.onchange=async()=>{
       const f=input.files[0];if(!f)return;
       cur.file=f;
